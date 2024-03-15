@@ -1,0 +1,71 @@
+﻿@inject IDbContextFactory<ShopDbContext> ShopDbContextFactory
+
+<div class="modal" id="addNewStorageItemModal" tabindex="-1" aria-labelledby="addNewStorageItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="addNewStorageItemModalLabel">New furniture</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <label>Name: </label>
+                        <InputText @bind-Value="NewFurniture.Name" placeholder="Furniture name" />
+                    </div>
+                    <div class="row">
+                        <label>Price: </label>
+                        <InputNumber @bind-Value="NewFurniture.Price" placeholder="Furniture price"
+                                     EnableMinMax="true" Min="0" Max="100000000" />
+                    </div>
+                    <div class="row">
+                        <label>Initial count:</label>
+                        <InputNumber @bind-Value="NewFurniture.Count" placeholder="Furniture count"
+                                     EnableMinMax="true" Min="0" Max="100000000" />
+                    </div>
+                    <div class="row">
+                        <label>Description: </label>
+                        <InputTextArea @bind-Value="NewFurniture.Description" placeholder="Furniture description" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" @onclick="AddNewItem" class="btn btn-primary"
+                        data-bs-dismiss="modal">
+                    Create
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnItemCreatedCallBack { get; set; }
+
+    private ShopDbContext? _shopDbContext;
+    private Furniture NewFurniture = new();
+
+    public void AddNewItem()
+    {
+        _shopDbContext ??= ShopDbContextFactory.CreateDbContext();
+
+        if (_shopDbContext == null) return;
+
+        if (NewFurniture.Name == null || NewFurniture.Name?.Length == 0 
+            || NewFurniture.Count < 0 || NewFurniture.Count > int.MaxValue
+            || NewFurniture.Price < 0 || NewFurniture.Price > int.MaxValue) return;
+
+        if (_shopDbContext.Furniture.Any(x => x.Name == NewFurniture.Name)) return;
+
+        _shopDbContext.Furniture.Add(NewFurniture);
+        _shopDbContext.SaveChanges();
+
+        OnItemCreatedCallBack.InvokeAsync().Wait();
+    }
+}

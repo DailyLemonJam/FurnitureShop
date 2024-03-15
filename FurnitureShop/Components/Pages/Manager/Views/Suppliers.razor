@@ -1,0 +1,75 @@
+﻿@using FurnitureShop.Components.Pages.Manager.Views.Modals
+@rendermode InteractiveServer
+@inject IDbContextFactory<ShopDbContext> ShopDbContextFactory
+
+<div class="container">
+
+    <div class="row">
+        <p class="display-6 mt-3">Available suppliers</p>
+    </div>
+
+    <div class="row mb-3">
+        <div class="input-group input-group-lg">
+            <button @onclick="FindSuppliers" class="btn btn-outline-success">Find</button>
+            <InputText class="form-control" @bind-Value="FurnitureToFind" placeholder="Furniture to find... (Bed, wardrobe, table, etc)" />
+        </div>
+    </div>
+
+    @if (SupplierList != null && SupplierList.Count > 0)
+    {
+        <div class="row">
+            <table class="table table-bordered">
+                <thead class="table-success">
+                    <tr>
+                        <th>Supplier name</th>
+                        <th class="text-center" style="width:15%">Price</th>
+                        <th class="text-center" style="width:8%">Order</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var supplier in SupplierList)
+                    {
+                        <tr>
+                            <td>@supplier.Name</td>
+                            <td class="text-center">@supplier.OfferedPrice</td>
+                            <td @onclick="@(_ => supplierData = supplier)" data-bs-toggle="modal" data-bs-target="#orderFurnitureModal" class="text-center"><button class="btn btn-primary">Order</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+</div>
+
+<ModalOrderFurniture Supplier="supplierData"/>
+
+@code {
+    private Supplier supplierData = new(string.Empty, string.Empty, 0); // keeps data for ModalOrderFurniture
+
+    public string FurnitureToFind = string.Empty;
+
+    public List<Supplier> SupplierList = new();
+
+    public async Task FindSuppliers()
+    {
+        if (FurnitureToFind == string.Empty) return;
+
+        SupplierList.Clear();
+
+        int suppliersCount = Random.Shared.Next(1, 15);
+        int targetPrice = Random.Shared.Next(20, 1000);
+
+        for (int i = 0; i < suppliersCount; i++)
+        {
+            await Task.Delay(Random.Shared.Next(100, 500));
+
+            var supplier = new Supplier(NotRealCompanyNames[Random.Shared.Next(0, NotRealCompanyNames.Count - 1)], 
+                        FurnitureToFind, Random.Shared.Next((int)(targetPrice * 0.8), (int)(targetPrice * 1.2)));
+
+            SupplierList.Add(supplier);
+
+            StateHasChanged();
+        }
+    }
+}

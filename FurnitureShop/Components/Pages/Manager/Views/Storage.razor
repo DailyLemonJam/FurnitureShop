@@ -1,0 +1,82 @@
+﻿@using FurnitureShop.Components.Pages.Manager.Views.Modals
+@rendermode InteractiveServer
+@inject IDbContextFactory<ShopDbContext> ShopDbContextFactory
+
+<div class="container">
+    
+    <div>
+        <p class="display-6 my-3 me-3 d-inline-block">Furniture in the shop</p>
+        <button data-bs-toggle="modal" data-bs-target="#addNewStorageItemModal" class="btn btn-success btn-lg mb-3">Add new</button>
+    </div>
+
+    @if (FurnitureList == null || FurnitureList.Count == 0)
+    {
+        <p>There is no furniture yet.</p>
+    }
+    else
+    {
+        <table class="table table-bordered">
+            <thead class="table-success">
+                <tr>
+                    <th style="width:20%">Name</th>
+                    <th>Description</th>
+                    <th class="text-center" style="width:10%">Price</th>
+                    <th class="text-center" style="width:10%">Count</th>
+                    <th class="text-center" style="width:4%">Edit</th>
+                    <th class="text-center" style="width:5%">Remove</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var furniture in FurnitureList)
+                {
+                    <tr>
+                        <td>@furniture.Name</td>
+                        <td>@furniture.Description</td>
+                        <td class="text-center">@furniture.Price</td>
+                        <td class="text-center">@furniture.Count</td>
+                        <td @onclick="@(_ => FurnitureToEdit = furniture)" data-bs-toggle="modal" data-bs-target="#editStorageItemModal"
+                            class="text-center">
+                            <button class="btn btn-primary">Edit</button>
+                        </td>
+                        <td @onclick="@(_ => RemoveFurnitureItem(furniture))" class="text-center"><button class="btn btn-danger">Remove</button></td>
+                    </tr>
+                }
+            </tbody>
+            
+        </table>
+    }
+</div>
+
+<ModalEditStorageItem FurnitureToEdit="FurnitureToEdit" OnItemChangedCallBack="RefreshFurnitureList"  />
+<ModalAddNewStorageItem OnItemCreatedCallBack="RefreshFurnitureList"/>
+
+@code {
+    private ShopDbContext? _shopDbContext;
+
+    public Furniture FurnitureToEdit = new(); // keeps temp data to provide into modal window
+    public List<Furniture>? FurnitureList;
+
+    protected override void OnInitialized()
+    {
+        _shopDbContext ??= ShopDbContextFactory.CreateDbContext();
+
+        FurnitureList = _shopDbContext.Furniture.ToList();
+    }
+
+    public void RemoveFurnitureItem(Furniture furniture)
+    {
+        _shopDbContext ??= ShopDbContextFactory.CreateDbContext();
+
+        _shopDbContext.Furniture.Remove(furniture);
+        _shopDbContext.SaveChanges();
+
+        FurnitureList = _shopDbContext.Furniture.ToList();
+    }
+
+    public void RefreshFurnitureList()
+    {
+        _shopDbContext ??= ShopDbContextFactory.CreateDbContext();
+
+        FurnitureList = _shopDbContext.Furniture.ToList();
+    }
+}

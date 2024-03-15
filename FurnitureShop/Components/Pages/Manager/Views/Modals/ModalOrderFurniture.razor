@@ -1,0 +1,80 @@
+﻿@inject IDbContextFactory<ShopDbContext> ShopDbContextFactory
+
+<div class="modal" id="orderFurnitureModal" tabindex="-1" aria-labelledby="orderFurnitureModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderFurnitureModalLabel">Order menu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="container-fluid">
+
+                    <div class="row">
+                        <label>Supplier name: @Supplier.Name</label>
+                    </div>
+
+                    <div class="row">
+                        <label>Count: </label>
+                        <InputNumber @bind-Value="AmountToOrder" placeholder="Amount to order"
+                                     EnableMinMax="true" Min="0" Max="1000" />
+                    </div>
+
+                    <div class="row">
+                        <label>Total price: @(Supplier.OfferedPrice * AmountToOrder)</label>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" @onclick="Order" class="btn btn-primary"
+                        data-bs-dismiss="modal">
+                    Order
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Suppliers.Supplier Supplier { get; set; }
+
+    private int AmountToOrder = 1;
+
+    private ShopDbContext? _shopDbContext;
+
+    public void Order()
+    {
+        _shopDbContext ??= ShopDbContextFactory.CreateDbContext();
+
+        if (_shopDbContext == null) return;
+
+        if (AmountToOrder < 0 || AmountToOrder > int.MaxValue) return;
+
+        if (_shopDbContext.Furniture.Any(x => x.Name == Supplier.FurnitureName))
+        {
+            var furniture = _shopDbContext.Furniture.First(x => x.Name == Supplier.FurnitureName);
+            furniture.Count += AmountToOrder;
+
+            _shopDbContext.Furniture.Update(furniture);
+            _shopDbContext.SaveChanges();
+            return;
+        }
+
+        var newFurniture = new Furniture()
+        {
+            Count = AmountToOrder,
+            Name = Supplier.FurnitureName,
+            Price = Supplier.OfferedPrice
+        };
+
+        _shopDbContext.Furniture.Add(newFurniture);
+        _shopDbContext.SaveChanges();
+    }
+}

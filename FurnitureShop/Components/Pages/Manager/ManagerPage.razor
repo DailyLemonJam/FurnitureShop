@@ -1,0 +1,30 @@
+﻿@using FurnitureShop.Components.Pages.Manager.Views
+@page "/manager"
+@rendermode InteractiveServer
+
+<PageTitle>Manager Page</PageTitle>
+
+<div class="top-row">
+    <button class="btn btn-success" @onclick="@(_ => view = CurrentView.CustomerOrders)">Customer orders</button>
+    <button class="btn btn-success" @onclick="@(_ => view = CurrentView.Storage)">Storage</button>
+    <button class="btn btn-success" @onclick="@(_ => view = CurrentView.Suppliers)">Suppliers</button>
+</div>
+
+@switch (view)
+{
+    case CurrentView.CustomerOrders:
+        <CustomerOrders />
+        break;
+    case CurrentView.Storage:
+        <Storage />
+        break;
+    case CurrentView.Suppliers:
+        <Suppliers />
+        break;
+}
+
+@code {
+    private CurrentView view = CurrentView.CustomerOrders;
+
+
+}

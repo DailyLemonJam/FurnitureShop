@@ -1,0 +1,114 @@
+﻿@rendermode InteractiveServer
+@inject IDbContextFactory<ShopDbContext> ShopDbContextFactory
+
+
+<div class="container-fluid">
+
+    <div class="row">
+        <p class="display-6 mt-3 col-3 offset-2">Customer orders</p>
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-2">
+            <div class="btn-group">
+                <div class="dropdown">
+                    <button class="btn btn-success dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        Order by
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li @onclick="@(_ => GetSortedOrders("Name"))" class="dropdown-item">Name</li>
+                        <li @onclick="@(_ => GetSortedOrders("Date"))" class="dropdown-item">Date</li>
+                        <li @onclick="@(_ => GetSortedOrders("OrderedPrice"))" class="dropdown-item">Ordered price</li>
+                    </ul>
+                </div>
+                <button class="btn btn-success" @onclick="@(_ => Orders = _shopDbContext?.Orders.ToList())">Refresh</button>
+            </div>
+        </div>
+
+        <div class="col-md-10">
+            @if (Orders == null || Orders.Count == 0)
+            {
+                <p>There are no orders yet.</p>
+            }
+            else
+            {
+                <table class="table table-bordered">
+                    <thead class="table-success">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Order date</th>
+                            <th>Ordered IDs</th>
+                            <th style="width: 15%" class="text-center">Price</th>
+                            <th style="width: 8%" class="text-center">Complete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Orders)
+                        {
+                            <tr>
+                                <td>@order.CustomerName</td>
+                                <td>@order.CustomerEmail</td>
+                                <td>@order.OrderDate</td>
+                                <td>@string.Join(", ", order.OrderedFurnitureNames.ToArray())</td>
+                                <td style="width: 8%" class="text-center">@order.PriceWhenOrdered</td>
+                                <td><button class="btn btn-primary" @onclick="@(_ => CompleteOrder(order))">Complete</button></td>
+                            </tr>
+                        }
+                    </tbody>
+                    
+                </table>
+            }
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    private ShopDbContext? _shopDbContext;
+
+    private List<Order>? Orders;
+
+    public async Task CompleteOrder(Order order)
+    {
+        _shopDbContext ??= ShopDbContextFactory.CreateDbContext();
+
+        if (_shopDbContext == null || order == null) return;
+
+        // TODO reduce furniture count
+        _shopDbContext.Orders.Remove(order);
+        await _shopDbContext.SaveChangesAsync();
+
+        Orders = _shopDbContext.Orders.ToList();
+    }
+
+    public void GetSortedOrders(string value)
+    {
+        if (_shopDbContext == null) return;
+
+        switch(value)
+        {
+            case "Name":
+                Orders = _shopDbContext.Orders.OrderBy(o => o.CustomerName).ToList();
+                break;
+            case "Date":
+                Orders = _shopDbContext.Orders.OrderBy(o => o.OrderDate).ToList();
+                break;
+            case "OrderedPrice":
+                Orders = _shopDbContext.Orders.OrderBy(o => o.PriceWhenOrdered).ToList();
+                break;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        _shopDbContext ??= ShopDbContextFactory.CreateDbContext();
+        
+        if (_shopDbContext == null) return;
+
+        Orders = _shopDbContext.Orders.ToList();
+    }
+}

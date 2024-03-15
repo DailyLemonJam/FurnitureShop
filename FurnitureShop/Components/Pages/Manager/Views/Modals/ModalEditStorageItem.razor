@@ -1,0 +1,69 @@
+﻿@inject IDbContextFactory<ShopDbContext> ShopDbContextFactory
+
+<div class="modal" id="editStorageItemModal" tabindex="-1" aria-labelledby="editStorageItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="editStorageItemModalLabel">Edit menu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <label>Name: </label>
+                        <InputText @bind-Value="FurnitureToEdit.Name" placeholder="Furniture name" />
+                    </div>
+                    <div class="row">
+                        <label>Price: </label>
+                        <InputNumber @bind-Value="FurnitureToEdit.Price" placeholder="Furniture price" 
+                                     EnableMinMax="true" Min="0" Max="100000000" />
+                    </div>
+                    <div class="row">
+                        <label>Count (for manager: change this manually only if it wasn't updated automatically): </label>
+                        <InputNumber @bind-Value="FurnitureToEdit.Count" placeholder="Furniture count"
+                                     EnableMinMax="true" Min="0" Max="100000000" />
+                    </div>
+                    <div class="row">
+                        <label>Description: </label>
+                        <InputTextArea @bind-Value="FurnitureToEdit.Description" placeholder="Furniture description"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" @onclick="SaveChanges" class="btn btn-primary" 
+                        data-bs-dismiss="modal">Save changes</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code{
+    [Parameter]
+    public Furniture FurnitureToEdit { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnItemChangedCallBack { get; set; }
+
+    private ShopDbContext? _shopDbContext;
+
+    public void SaveChanges()
+    {
+        _shopDbContext ??= ShopDbContextFactory.CreateDbContext();
+
+        if (_shopDbContext == null) return;
+
+        if (FurnitureToEdit.Name == null || FurnitureToEdit.Name?.Length == 0
+            || FurnitureToEdit.Count < 0 || FurnitureToEdit.Count > int.MaxValue
+            || FurnitureToEdit.Price < 0 || FurnitureToEdit.Price > int.MaxValue) return;
+
+        _shopDbContext.Furniture.Update(FurnitureToEdit);
+        _shopDbContext.SaveChanges();
+
+        OnItemChangedCallBack.InvokeAsync().Wait();
+    }
+}

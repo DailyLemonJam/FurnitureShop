@@ -1,0 +1,15 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject IDbContextFactory<ShopDbContext> DbContextFactory;
+
+<PageTitle>Home</PageTitle>
+
+<h1 class="display-6">This is a project that allows you to manipulate both as customer and manager.</h1>
+<p>To use it as a customer, go to Customer page on the navigation menu.</p>
+<p>In order to use it as a manager, go to Manager page below.</p>
+<p>Settings page contains controls for both Customer and Manager data.</p>
+<p>Initially this project uses SQLite inside, but you can change it if you want.</p>
+
+@code{
+
+}
