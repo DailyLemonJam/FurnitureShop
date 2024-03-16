@@ -1,33 +1,25 @@
-﻿@page "/customer"
+﻿@using FurnitureShop.Components.Pages.Customer.Views
+@page "/customer"
 @rendermode InteractiveServer
-@inject IDbContextFactory<ShopDbContext> DbContextFactory
 
 <PageTitle>Customer page</PageTitle>
 
-<h3>CustomerHome</h3>
+<div class="top-row">
+    <button class="btn btn-success" @onclick="@(_ => view = CustomerView.Shop)">Catalog</button>
+    <button class="btn btn-success" @onclick="@(_ => view = CustomerView.Cart)">Cart</button>
+</div>
 
-<button class="btn btn-success" @onclick="CreateOrder">Create (not) random order</button>
+@switch (view)
+{
+    case CustomerView.Shop:
+        <Catalog />
+        break;
+    case CustomerView.Cart:
+        <Cart />
+        break;
+}
 
 @code {
-    private ShopDbContext _shopDbContext;
-
-    public void CreateOrder()
-    {
-        _shopDbContext ??= DbContextFactory.CreateDbContext();
-
-        var order = new Order()
-        {
-            CustomerName = "John" + Random.Shared.Next(50),
-            CustomerEmail = "email@mail.com",
-            OrderDate = DateTime.Now,
-            OrderedFurnitureNames = ["Bed", "Sofa", "Chair"],
-            PriceWhenOrdered = Random.Shared.Next(1000)
-        };
-
-        if (_shopDbContext == null) return;
-
-        _shopDbContext.Orders.Add(order);
-        _shopDbContext.SaveChanges();
-    }
-
+    private CustomerView view = CustomerView.Shop;
+    
 }

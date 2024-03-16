@@ -2,7 +2,7 @@
 
 public partial class ManagerPage
 {
-    public enum CurrentView
+    public enum ManagerView
     {
         CustomerOrders,
         Storage,

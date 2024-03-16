@@ -1,0 +1,86 @@
+﻿@rendermode InteractiveServer
+@inject IDbContextFactory<ShopDbContext> ShopDbContextFactory
+
+<div class="container">
+
+    <div class="row">
+        <p class="display-6 mt-3">Catalog</p>
+    </div>
+
+    <div class="row mb-3">
+        <div class="input-group input-group-lg">
+            <button @onclick="Refresh" class="btn btn-outline-success">Refresh</button>
+            <input class="form-control" placeholder="Furniture you want... (Bed, wardrobe, table, etc)"
+                       @bind="furnitureToFind" @bind:event="oninput" @bind:after="UpdateAvailableFurniture" />
+        </div>
+    </div>
+
+    <div class="row">
+        @if (AvailableFurniture == null || AvailableFurniture.Count == 0)
+        {
+            <p>No available furniture yet.</p>
+        }
+        else
+        {
+            <table class="table table-bordered">
+                <thead class="table-success">
+                    <tr>
+                        <th style="width:20%">Name</th>
+                        <th>Description</th>
+                        <th class="text-center" style="width:10%">Price</th>
+                        <th class="text-center" style="width:8%">Add to cart</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var furniture in AvailableFurniture)
+                    {
+                        <tr>
+                            <td>@furniture.Name</td>
+                            <td>@furniture.Description</td>
+                            <td class="text-center">@furniture.Price</td>
+                            <td class="text-center"><button @onclick="(_ => AddToCart(furniture))" class="btn btn-primary">Add</button></td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        }
+    </div>
+
+</div>
+
+@code {
+    private ShopDbContext? _shopDbContext;
+
+    public List<Furniture>? AvailableFurniture;
+    public string furnitureToFind = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _shopDbContext ??= ShopDbContextFactory.CreateDbContext();
+
+        if (_shopDbContext == null) return;
+
+        AvailableFurniture = _shopDbContext.Furniture.ToList();
+    }
+
+    public void UpdateAvailableFurniture()
+    {
+        _shopDbContext ??= ShopDbContextFactory.CreateDbContext();
+
+        // StringComparison can't be used here in Contains, so using ToLower
+        AvailableFurniture = _shopDbContext.Furniture.Where(x => x.Name.ToLower().Contains(furnitureToFind.ToLower())).ToList();
+    }
+
+    public void Refresh()
+    {
+        _shopDbContext ??= ShopDbContextFactory.CreateDbContext();
+
+        AvailableFurniture = _shopDbContext.Furniture.ToList();
+    }
+
+    public void AddToCart(Furniture furniture)
+    {
+        CartSharedState.AddToCart(furniture);
+    }
+}

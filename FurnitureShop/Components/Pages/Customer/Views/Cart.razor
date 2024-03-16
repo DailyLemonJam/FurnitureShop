@@ -1,0 +1,75 @@
+﻿@rendermode InteractiveServer
+@inject IDbContextFactory<ShopDbContext> ShopDbContextFactory
+
+<div class="container">
+
+    <div class="row">
+        <p class="display-6 mt-3">Cart</p>
+    </div>
+
+    <div class="row">
+        @if (CartSharedState.FurnitureInCart == null || CartSharedState.FurnitureInCart.Count == 0)
+        {
+            <p>Nothing was added in cart.</p>
+        }
+        else
+        {
+            <table class="table table-bordered">
+                <thead class="table-success">
+                    <tr>
+                        <th style="width:20%">Name</th>
+                        <th>Description</th>
+                        <th class="text-center" style="width:10%">Price</th>
+                        <th class="text-center" style="width:10%">Count</th>
+                        <th class="text-center" style="width:8%">Remove</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var furniture in CartSharedState.FurnitureInCart.Keys)
+                    {
+                        <tr>
+                            <td>@furniture.Name</td>
+                            <td>@furniture.Description</td>
+                            <td class="text-center">@furniture.Price</td>
+                            <td class="text-center">@CartSharedState.FurnitureInCart[furniture]</td>
+                            <td @onclick="@(_ => CartSharedState.RemoveFromCart(furniture))" class="text-center"><button class="btn btn-danger">Remove</button></td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        }
+    </div>
+
+    <div class="row">
+        <button @onclick="CreateOrder" class="btn btn-success">Order</button>
+    </div>
+
+</div>
+
+@code {
+    private ShopDbContext _shopDbContext;
+
+    public void CreateOrder()
+    {
+        if (CartSharedState.FurnitureInCart.Count == 0) return;
+
+        _shopDbContext ??= ShopDbContextFactory.CreateDbContext();
+
+        var order = new Order()
+        {
+            // TODO Order fields
+            OrderDate = DateTime.Now,
+            CustomerName = Random.Shared.Next(0, 1000).ToString(),
+            CustomerEmail = (Random.Shared.Next(0, 1000).ToString() + '@' + Random.Shared.Next(0, 1000).ToString()),
+            
+            // TODO Change to Furniture Type (after changing in DbContext)
+            //OrderedFurnitureNames = CartSharedState.FurnitureInCart.Keys,
+            OrderedFurnitureNames = ["Bed", "Sofa", "Chair"],
+            PriceWhenOrdered = Random.Shared.Next(20, 1000)
+        };
+
+        _shopDbContext.Orders.Add(order);
+        _shopDbContext.SaveChanges();
+    }
+}

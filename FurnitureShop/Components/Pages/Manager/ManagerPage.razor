@@ -5,26 +5,26 @@
 <PageTitle>Manager Page</PageTitle>
 
 <div class="top-row">
-    <button class="btn btn-success" @onclick="@(_ => view = CurrentView.CustomerOrders)">Customer orders</button>
-    <button class="btn btn-success" @onclick="@(_ => view = CurrentView.Storage)">Storage</button>
-    <button class="btn btn-success" @onclick="@(_ => view = CurrentView.Suppliers)">Suppliers</button>
+    <button class="btn btn-success" @onclick="@(_ => view = ManagerView.CustomerOrders)">Customer orders</button>
+    <button class="btn btn-success" @onclick="@(_ => view = ManagerView.Storage)">Storage</button>
+    <button class="btn btn-success" @onclick="@(_ => view = ManagerView.Suppliers)">Suppliers</button>
 </div>
 
 @switch (view)
 {
-    case CurrentView.CustomerOrders:
+    case ManagerView.CustomerOrders:
         <CustomerOrders />
         break;
-    case CurrentView.Storage:
+    case ManagerView.Storage:
         <Storage />
         break;
-    case CurrentView.Suppliers:
+    case ManagerView.Suppliers:
         <Suppliers />
         break;
 }
 
 @code {
-    private CurrentView view = CurrentView.CustomerOrders;
+    private ManagerView view = ManagerView.CustomerOrders;
 
 
 }
